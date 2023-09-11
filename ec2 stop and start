@@ -1,0 +1,81 @@
+
+How do I use Lambda to stop and start Amazon EC2 instances at regular intervals
+
+Use AWS Lambda and Amazon EventBridge to automatically stop and start Amazon EC2 instances
+
+1.Create a custom AWS Identity and Access Management (IAM) policy and IAM role for your Lambda function.
+
+* Use the JSON policy editor to create an IAM policy. Paste the following JSON policy document into the policy editor:
+
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:*:*:*"
+    }, 
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:Start*",
+        "ec2:Stop*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+
+Now  Create an IAM role for Lambda.
+Important: When you attach a permissions policy to Lambda, make sure that you choose the IAM policy that you just created.
+
+2.Create Lambda functions that stop and start your EC2 instances.
+
+1.    Open the Lambda console, and then choose Create function.
+2.    Choose Author from scratch.
+3.    Under Basic information, enter the following information:
+For Function name, enter a name that identifies it as the function that's used to stop your EC2 instances. For example, "StopEC2Instances".
+For Runtime, choose Python 3.9.
+Under Permissions, expand Change default execution role.
+Under Execution role, choose Use an existing role.
+Under Existing role, choose the IAM role that you created.
+4.    Choose Create function.
+5.On the Code tab, under Code source, paste the following code into the editor pane in the code editor on the lambda_function tab. These code stop and start the EC2 instances that you identify.
+###Python function to stop ec2 instance
+
+import boto3
+region = 'ap-south-1'
+instances = ['i-07b8d37d00273e949']
+ec2 = boto3.client('ec2', region_name=region)
+
+def lambda_handler(event, context):
+    ec2.stop_instances(InstanceIds=instances)
+    print('stopped your instances: ' + str(instances))
+
+***Python function to start  ec2 instance
+
+import boto3
+region = 'us-west-1'
+instances = ['i-12345cb6de4f78g9h', 'i-08ce9b2d7eccf6d26']
+ec2 = boto3.client('ec2', region_name=region)
+
+def lambda_handler(event, context):
+    ec2.start_instances(InstanceIds=instances)
+    print('started your instances: ' + str(instances))
+6.chose deploy
+
+3.Test your Lambda functions
+1.Open the Lambda console, and then choose Functions.
+2.Choose one of the functions that you created.
+3.Choose the Code tab.
+4.In the Code source section, choose Test.
+5.In the Configure test event dialog box, choose Create new test event.
+6.Enter an Event name. Then, choose Create.
+Note: Don't change the JSON code for the test event. The function doesn't use it.
+Choose Test to run the function.
+
+You can check the status of your EC2 instances before and after testing to confirm that your functions work as you expect.
